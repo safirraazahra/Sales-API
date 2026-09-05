@@ -20,8 +20,10 @@ app.use("/api/customers", customerRoutes);
 
 const port = process.env.PORT || 3000;
 
-console.log("Sebelum menjalankan server...");
-
-app.listen(port, () => {
+if (!process.env.VERCEL) {
+  app.listen(port, () => {
     console.log(`Server running on port ${port}`);
-});
+  });
+}
+
+export default app;
