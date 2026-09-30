@@ -1,91 +1,145 @@
-# Sales API - Praktikum Pemrograman Perangkat Bergerak (PPB)
+# Library API (Pencatatan Peminjaman Buku)
 
-Sales API berbasis Express.js dan Supabase Database untuk manajemen data Kategori, Produk, dan Pelanggan.
+REST API sederhana untuk layanan pencatatan peminjaman buku perpustakaan. Dibangun dengan Node.js, Express.js, dan Supabase, serta di-deploy ke Vercel.
 
-🌐 **Live Deployment URL:** [https://sales-api-dcuq.vercel.app](https://sales-api-dcuq.vercel.app)
+## Deskripsi Umum & Tujuan Proyek
 
----
+Proyek ini bertujuan untuk menyediakan layanan backend berupa REST API untuk mengelola data peminjaman buku perpustakaan. API ini mendukung operasi CRUD (Create, Read, Update, Delete) dan fitur filter query (contoh: berdasarkan status peminjaman).
 
-## 🚀 Fitur Utama
-1. **CRUD Categories**: Manajemen data kategori produk (`/api/categories`).
-2. **CRUD Products**: Manajemen data produk (`/api/products`).
-3. **CRUD Customers**: Manajemen data pelanggan (`/api/customers`).
-4. **Vercel Serverless Ready**: Siap diakses secara online via Vercel.
+## Struktur Data / Schema (Supabase)
 
----
+Tabel: `loans`
 
-## 📋 Daftar Endpoint API
+| Kolom | Tipe Data | Keterangan |
+| :--- | :--- | :--- |
+| `id` | uuid | Primary Key, otomatis dibuat oleh Supabase |
+| `book_title` | text | Judul buku yang dipinjam |
+| `member_name` | text | Nama anggota yang meminjam |
+| `borrow_date` | date | Tanggal peminjaman |
+| `return_date` | date | Tanggal pengembalian (opsional) |
+| `status` | text | Status peminjaman (contoh: "Dipinjam", "Dikembalikan", "Terlambat") |
+| `created_at` | timestamp | Timestamp saat data dibuat |
 
-**Base URL (Production):** `https://sales-api-dcuq.vercel.app`  
-**Base URL (Local):** `http://localhost:3000`
+### SQL untuk membuat tabel di Supabase:
+```sql
+create table public.loans (
+  id uuid not null default gen_random_uuid(),
+  book_title text not null,
+  member_name text not null,
+  borrow_date date not null,
+  return_date date null,
+  status text not null default 'Dipinjam'::text,
+  created_at timestamp with time zone not null default now(),
+  constraint loans_pkey primary key (id)
+);
+```
 
-### 1. Root & Health Check
-| Method | Endpoint | Deskripsi |
-|---|---|---|
-| `GET` | `/` | Menampilkan status API dan daftar endpoint |
+## Endpoint API & Contoh Request / Response
 
-### 2. Categories (`/api/categories`)
-| Method | Endpoint | Deskripsi |
-|---|---|---|
-| `GET` | `/api/categories` | Mengambil semua kategori |
-| `GET` | `/api/categories/:id` | Mengambil detail kategori berdasarkan ID |
-| `POST` | `/api/categories` | Menambahkan kategori baru |
-| `PUT` | `/api/categories/:id` | Memperbarui data kategori |
-| `DELETE` | `/api/categories/:id` | Menghapus kategori |
+### 1. GET `/api/loans` (Ambil Semua Data Peminjaman)
+- **Method:** `GET`
+- **Query Parameter (Opsional):** `?status=Terlambat`
+- **Response Sukses (200 OK):**
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": "e4b6b6b7-...",
+      "book_title": "Belajar Node.js",
+      "member_name": "Budi",
+      "borrow_date": "2023-10-01",
+      "return_date": "2023-10-08",
+      "status": "Dipinjam",
+      "created_at": "2023-10-01T10:00:00Z"
+    }
+  ]
+}
+```
 
-### 3. Products (`/api/products`)
-| Method | Endpoint | Deskripsi |
-|---|---|---|
-| `GET` | `/api/products` | Mengambil semua produk |
-| `GET` | `/api/products/:id` | Mengambil detail produk berdasarkan ID |
-| `POST` | `/api/products` | Menambahkan produk baru |
-| `PUT` | `/api/products/:id` | Memperbarui data produk |
-| `DELETE` | `/api/products/:id` | Menghapus produk |
+### 2. POST `/api/loans` (Tambah Data Peminjaman Baru)
+- **Method:** `POST`
+- **Body Request:**
+```json
+{
+  "book_title": "Belajar Express",
+  "member_name": "Siti",
+  "borrow_date": "2023-10-05",
+  "return_date": "2023-10-12",
+  "status": "Dipinjam"
+}
+```
+- **Response Sukses (201 Created):**
+```json
+{
+  "success": true,
+  "data": {
+    "id": "123e4567-...",
+    "book_title": "Belajar Express",
+    "member_name": "Siti",
+    "borrow_date": "2023-10-05",
+    "return_date": "2023-10-12",
+    "status": "Dipinjam",
+    "created_at": "..."
+  }
+}
+```
 
-### 4. Customers (`/api/customers`)
-| Method | Endpoint | Deskripsi |
-|---|---|---|
-| `GET` | `/api/customers` | Mengambil semua pelanggan |
-| `GET` | `/api/customers/:id` | Mengambil detail pelanggan berdasarkan ID |
-| `POST` | `/api/customers` | Menambahkan pelanggan baru |
-| `PUT` | `/api/customers/:id` | Memperbarui data pelanggan |
-| `DELETE` | `/api/customers/:id` | Menghapus pelanggan |
+### 3. PUT `/api/loans/:id` (Update Data Peminjaman)
+- **Method:** `PUT`
+- **Body Request:**
+```json
+{
+  "status": "Dikembalikan",
+  "return_date": "2023-10-10"
+}
+```
+- **Response Sukses (200 OK):**
+```json
+{
+  "success": true,
+  "data": { ... }
+}
+```
 
----
+### 4. DELETE `/api/loans/:id` (Hapus Data Peminjaman)
+- **Method:** `DELETE`
+- **Response Sukses (200 OK):**
+```json
+{
+  "success": true,
+  "message": "Loan record deleted successfully"
+}
+```
 
-## 📮 Postman Collection
-Tersedia file Postman untuk memudahkan pengujian API:
-- `PPB_API_Postman_Collection.json`
-- `PPB_API_Postman_Enviroment.json`
+## Panduan Instalasi & Cara Menjalankan Lokal
 
-Import kedua file tersebut ke dalam Postman dan pilih environment **Sales API Environment**.
-
----
-
-## 💻 Menjalankan Secara Lokal
-
-1. **Clone repository**:
+1. **Clone repository ini:**
    ```bash
-   git clone https://github.com/safirraazahra/Sales-API.git
-   cd Sales-API
+   git clone <url-repo-anda>
+   cd <nama-folder-repo>
    ```
 
-2. **Install dependencies**:
+2. **Instal dependensi:**
    ```bash
    npm install
    ```
 
-3. **Konfigurasi file `.env`**:
-   Buat file `.env` di root direktori dengan isi:
-   ```env
-   PORT=3000
-   SUPABASE_URL=https://your-project.supabase.co
-   SUPABASE_KEY=your-supabase-anon-key
-   ```
+3. **Konfigurasi Environment Variables:**
+   - Buat file `.env` di root folder.
+   - Isi dengan credential Supabase Anda:
+     ```env
+     PORT=3000
+     SUPABASE_URL=https://xyz.supabase.co
+     SUPABASE_KEY=ey...
+     ```
 
-4. **Jalankan Server**:
+4. **Jalankan server lokal:**
    ```bash
-   npm start
-   # atau
    npm run dev
    ```
+   API akan berjalan di `http://localhost:3000`.
+
+## Link Hasil Deployment Vercel
+
+- Base URL: [https://sales-api-dcuq.vercel.app/](https://sales-api-dcuq.vercel.app/)

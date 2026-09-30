@@ -1,22 +1,23 @@
 import express from "express";
 import dotenv from "dotenv";
-import categoryRoutes from "./routes/categoryRoutes.js";
-import productRoutes from "./routes/productRoutes.js";
-import customerRoutes from "./routes/customerRoutes.js";
+import cors from "cors";
+import loanRoutes from "./routes/loanRoutes.js";
 
 dotenv.config();
 
 const app = express();
 
+app.use(cors());
 app.use(express.json());
 
 app.get("/", (req, res) => {
-  res.json({ message: "Sales API is running!", endpoints: ["/api/categories", "/api/products", "/api/customers"] });
+  res.json({ 
+    message: "Library API is running!", 
+    endpoints: ["/api/loans"] 
+  });
 });
 
-app.use("/api/categories", categoryRoutes);
-app.use("/api/products", productRoutes);
-app.use("/api/customers", customerRoutes);
+app.use("/api/loans", loanRoutes);
 
 const port = process.env.PORT || 3000;
 
@@ -26,4 +27,4 @@ if (!process.env.VERCEL) {
   });
 }
 
-export default app;
+export default app;
